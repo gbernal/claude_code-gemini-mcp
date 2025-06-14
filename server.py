@@ -14,11 +14,12 @@ sys.stdout = os.fdopen(sys.stdout.fileno(), 'w', 1)
 sys.stderr = os.fdopen(sys.stderr.fileno(), 'w', 1)
 
 # Server version
-__version__ = "1.0.0"
+__version__ = "2.0.0"
 
 # Initialize Gemini
 try:
-    import google.generativeai as genai
+    from google import genai
+    from google.genai import types
     
     # Get API key from environment or use the one provided during setup
     API_KEY = os.environ.get("GEMINI_API_KEY", "YOUR_API_KEY_HERE")
@@ -32,8 +33,7 @@ try:
         }), file=sys.stdout, flush=True)
         sys.exit(1)
     
-    genai.configure(api_key=API_KEY)
-    model = genai.GenerativeModel('gemini-2.0-flash')
+    client = genai.Client(api_key=API_KEY)
     GEMINI_AVAILABLE = True
 except Exception as e:
     GEMINI_AVAILABLE = False
@@ -147,9 +147,10 @@ def handle_tools_list(request_id: Any) -> Dict[str, Any]:
 def call_gemini(prompt: str, temperature: float = 0.5) -> str:
     """Call Gemini and return response"""
     try:
-        response = model.generate_content(
-            prompt,
-            generation_config=genai.GenerationConfig(
+        response = client.models.generate_content(
+            model='gemini-2.5-pro-preview-06-05',
+            contents=prompt,
+            config=types.GenerateContentConfig(
                 temperature=temperature,
                 max_output_tokens=8192,
             )
